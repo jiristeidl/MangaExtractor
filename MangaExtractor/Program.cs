@@ -15,42 +15,28 @@ namespace MangaExtractor
         {
             string topDirectory = Directory.GetCurrentDirectory();
             string[] allFiles = Directory.GetFiles(topDirectory, "*", SearchOption.AllDirectories);
-            bool rarExist = false;
             bool zipExist = false;
+            int counter = 1;
 
             foreach (string file in allFiles)
             {
                 if (file.Substring(file.Length - 3).ToLower() == "zip")
                 {
                     zipExist = true;
-                }
-                if (file.Substring(file.Length - 3).ToLower() == "rar")
-                {
-                    rarExist = true;
-                }
-                if (zipExist && rarExist)
-                {
                     break;
                 }
             }
-
-            if (zipExist && rarExist) extractPics(getBothTypes(topDirectory),topDirectory);
-            else if (zipExist) extractPics(getZipFiles(topDirectory), topDirectory);
-            else if (rarExist) extractPics(getRarFiles(topDirectory),topDirectory);
+            if (zipExist) counter = extractPics(getZipFiles(topDirectory), topDirectory,counter);
             else Console.WriteLine("No archives Found in current directory");
 
             Console.ReadKey();
         }
-
-        private static string[] getRarFiles(string topDirectory)
-        {
-            return Directory.GetFiles(topDirectory, "*.rar", SearchOption.AllDirectories);
-        }
+        
         private static string[] getZipFiles(string topDirectory)
         {
             return Directory.GetFiles(topDirectory, "*.zip", SearchOption.AllDirectories);
         }
-        private static void extractPics(string[] p, string topDirectory)
+        private static int extractPics(string[] p, string topDirectory, int counter)
         {
             Directory.CreateDirectory(topDirectory + @"\extracted\");
             string directoryToExtractTo = topDirectory + @"\extracted";
@@ -60,20 +46,33 @@ namespace MangaExtractor
                 {
                     foreach (ZipArchiveEntry entry in oneArchive.Entries)
                     {
-                        if (isPicture(entry.FullName)) { }
+                        if (isPicture(entry.FullName))
+                        {
+                            Console.WriteLine(topDirectory+ @"\extracted\" + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
+                            entry.ExtractToFile(topDirectory + @"\extracted\" + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
+                            counter++;
+                        }
                     }
                 }
             }
+            return counter;
         }
-
         private static bool isPicture(string p)
         {
-            throw new NotImplementedException();
-        }
-
-        private static string[] getBothTypes(string topDirectory)
-        {
-            throw new NotImplementedException();
-        }
+            string[] possibleExtensions = {
+                                              "jpg",
+                                              "png"
+                                          };
+            bool result = false;
+            foreach (string extension in possibleExtensions)
+            {
+                if (p.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
+                {
+                    result = true;
+                    break;
+                }
+            }
+            return result;
+        }        
     }
 }
