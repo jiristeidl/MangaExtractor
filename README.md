@@ -1,3 +1,3 @@
 MangaExtractor
 ==============
-Nothing to see here 
+Utility for unpacking and sorting Mangas images from zip files
