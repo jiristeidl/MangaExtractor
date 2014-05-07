@@ -46,12 +46,23 @@ namespace MangaExtractor
                 {
                     foreach (ZipArchiveEntry entry in oneArchive.Entries)
                     {
-                        if (isPicture(entry.FullName))
+                        //if (isPicture(entry.FullName))
+                        //{
+                        //    Console.WriteLine(topDirectory+ @"\extracted\" + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
+                        //    entry.ExtractToFile(topDirectory + @"\extracted\" + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
+                        //    counter++;
+                        //}
+                        int length = entry.FullName.Length;
+                        string numberString = "";
+                        for (int i = length-1; i != 0; i--)
                         {
-                            Console.WriteLine(topDirectory+ @"\extracted\" + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
-                            entry.ExtractToFile(topDirectory + @"\extracted\" + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
-                            counter++;
+                            if (char.IsDigit(entry.FullName[i]))
+                            {
+                                numberString = entry.FullName[i] + numberString;
+                            }
+                            if (!string.IsNullOrEmpty(numberString) && !char.IsDigit(entry.FullName[i])) break;
                         }
+                        Console.WriteLine(numberString);
                     }
                 }
             }
