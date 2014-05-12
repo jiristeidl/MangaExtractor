@@ -12,9 +12,18 @@ namespace NewExtractorWithUI
 {
     public partial class Form1 : Form
     {
+        MangaExtractor extractor;
         public Form1()
         {
             InitializeComponent();
-        }      
+            extractor = new MangaExtractor();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            extractor.Extract();
+            results.Lines = extractor.ZipFiles;
+            this.Refresh();
+        }
     }
 }

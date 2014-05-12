@@ -12,6 +12,7 @@ namespace NewExtractorWithUI
         string[] extensions = {"img","png"};
         string[] otherArchives = { "rar","7z" };
         int counter;
+        public string[] ZipFiles { get; set; }
         public string RootDirectory
         {
             get
@@ -49,24 +50,14 @@ namespace NewExtractorWithUI
             }
         }
 
-        public void Sort()
+        public MangaExtractor()
         {
-            string[] allFiles = Directory.GetFiles(RootDirectory, "*", SearchOption.AllDirectories);
-            bool zipExist = false;
-            int counter = 1;
-
-            foreach (string file in allFiles)
-            {
-                if (file.Substring(file.Length - 3).ToLower() == "zip")
-                {
-                    zipExist = true;
-                    break;
-                }
-            }
-            if (zipExist) counter = extractPics(getZipFiles(RootDirectory), RootDirectory, counter);
-            else Console.WriteLine("No archives Found in current directory");
-
-            Console.ReadKey();
+            counter = 1;            
+        }
+        public void Extract()
+        {
+            ZipFiles = getZipFiles(RootDirectory);
+            //foreach (string file in ZipFiles) Text += file;
         }
         private string[] getZipFiles(string topDirectory)
         {
@@ -116,6 +107,25 @@ namespace NewExtractorWithUI
                 }
             }
             return result;
-        } 
+        }
+        private void oldMain()
+        {
+            string[] allFiles = Directory.GetFiles(RootDirectory, "*", SearchOption.AllDirectories);
+            bool zipExist = false;
+            int counter = 1;
+
+            foreach (string file in allFiles)
+            {
+                if (file.Substring(file.Length - 3).ToLower() == "zip")
+                {
+                    zipExist = true;
+                    break;
+                }
+            }
+            if (zipExist) counter = extractPics(getZipFiles(RootDirectory), RootDirectory, counter);
+            else Console.WriteLine("No archives Found in current directory");
+
+            Console.ReadKey();
+        }
     }
 }
