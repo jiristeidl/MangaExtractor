@@ -22,7 +22,7 @@ namespace NewExtractorWithUI
         private void button1_Click(object sender, EventArgs e)
         {
             extractor.Extract();
-            results.Lines = extractor.ZipFiles;
+            results.Lines = extractor.Images;
             this.Refresh();
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Collections.Generic;
 
 namespace NewExtractorWithUI
 {
@@ -10,9 +11,25 @@ namespace NewExtractorWithUI
         string extractedFolderName;
         string[] imgExtensions;
         string[] extensions = {"img","png"};
-        string[] otherArchives = { "rar","7z" };
+        string[] otherArchives = { "rar","7z" };        
+        Dictionary<int, string> filesToExtract;
+        Dictionary<int, string> imagesToExtract;
         int counter;
-        public string[] ZipFiles { get; set; }
+
+        public string[] ZipFiles
+        {
+            get
+            {                
+                if (filesToExtract == null || filesToExtract.Count == 0) return new string[2] { "No Files Found", "" };
+                else
+                {
+                    string[] filesReturning = new string[filesToExtract.Count];
+                    filesToExtract.Values.CopyTo(filesReturning, 0);
+                    return filesReturning;
+                }
+
+            }
+        }
         public string RootDirectory
         {
             get
@@ -49,21 +66,93 @@ namespace NewExtractorWithUI
                 imgExtensions = value;
             }
         }
+        public string[] Images
+        {
+            get
+            {
+                if (imagesToExtract == null || imagesToExtract.Count == 0) return new string[2] { "No Images Found", "" };
+                else
+                {
+                    string[] filesReturning = new string[filesToExtract.Count];
+                    imagesToExtract.Values.CopyTo(filesReturning, 0);
+                    return filesReturning;
+                }
+            }
+        }
 
         public MangaExtractor()
         {
-            counter = 1;            
+            counter = 1;
+            filesToExtract = new Dictionary<int, string>();
         }
         public void Extract()
         {
-            ZipFiles = getZipFiles(RootDirectory);
-            //foreach (string file in ZipFiles) Text += file;
+            string dump;
+            filesToExtract = getZipFiles();
+            imagesToExtract = extractPictures(filesToExtract);
+            if (filesToExtract.TryGetValue(-1, out dump))
+            {
+               
+            }
+            else
+            {
+
+            }
         }
-        private string[] getZipFiles(string topDirectory)
+
+        private Dictionary<int, string> extractPictures(Dictionary<int, string> filesToExtract)
         {
-            return Directory.GetFiles(topDirectory, "*.zip", SearchOption.AllDirectories);
+            throw new NotImplementedException();
+            string[] archives = getArchives(filesToExtract);
+            foreach (string archive in archives)
+            {
+                using (ZipArchive oneArchive = ZipFile.OpenRead(archive))
+                {
+                    foreach (ZipArchiveEntry entry in oneArchive.Entries)
+                    {
+                        if (isPicture(entry.FullName))
+                        {
+                            Console.WriteLine(RootDirectory + ExtractedFolderName + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
+                            entry.ExtractToFile(RootDirectory + ExtractedFolderName + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
+                            counter++;
+                        }
+                    }
+                }
+            }
         }
-        private int extractPics(string[] p, string topDirectory, int counter)
+        private string[] getArchives(Dictionary<int, string> filesToExtract)
+        {
+            throw new NotImplementedException();
+            string dump;
+            string[] result = new string[filesToExtract.Count];
+            if (filesToExtract.TryGetValue(-1, out dump))
+            {
+                dump = null;
+                filesToExtract.Values.CopyTo(result, 0);
+            }
+        }
+        private Dictionary<int, string> getZipFiles()
+        {
+            Dictionary<int,string> allZipFiles = new Dictionary<int,string>();
+            string[] zipFiles = Directory.GetFiles(RootDirectory, "*.zip", SearchOption.AllDirectories);
+            foreach(string entry in zipFiles)
+            {
+                int length = entry.Length;
+                string numberString = "";
+                for (int i = length - 1; i != 0; i--)
+                {
+                    if (char.IsDigit(entry[i]))
+                    {
+                        numberString = entry[i] + numberString;
+                    }
+                    if (!string.IsNullOrEmpty(numberString) && !char.IsDigit(entry[i])) break;
+                }
+                if (string.IsNullOrEmpty(numberString)) numberString = "-1";
+                allZipFiles.Add(int.Parse(numberString),entry);
+            }
+            return allZipFiles;
+        }
+        private int oldextractPics(string[] p, string topDirectory, int counter)
         {
             Directory.CreateDirectory(topDirectory + ExtractedFolderName);
             string directoryToExtractTo = topDirectory + ExtractedFolderName;
@@ -73,23 +162,12 @@ namespace NewExtractorWithUI
                 {
                     foreach (ZipArchiveEntry entry in oneArchive.Entries)
                     {
-                        //if (isPicture(entry.FullName))
-                        //{
-                        //    Console.WriteLine(topDirectory+ ExtractedFolderName + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
-                        //    entry.ExtractToFile(topDirectory + ExtractedFolderName + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
-                        //    counter++;
-                        //}
-                        int length = entry.FullName.Length;
-                        string numberString = "";
-                        for (int i = length - 1; i != 0; i--)
+                        if (isPicture(entry.FullName))
                         {
-                            if (char.IsDigit(entry.FullName[i]))
-                            {
-                                numberString = entry.FullName[i] + numberString;
-                            }
-                            if (!string.IsNullOrEmpty(numberString) && !char.IsDigit(entry.FullName[i])) break;
+                            Console.WriteLine(topDirectory + ExtractedFolderName + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
+                            entry.ExtractToFile(topDirectory + ExtractedFolderName + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
+                            counter++;
                         }
-                        Console.WriteLine(numberString);
                     }
                 }
             }
@@ -107,25 +185,6 @@ namespace NewExtractorWithUI
                 }
             }
             return result;
-        }
-        private void oldMain()
-        {
-            string[] allFiles = Directory.GetFiles(RootDirectory, "*", SearchOption.AllDirectories);
-            bool zipExist = false;
-            int counter = 1;
-
-            foreach (string file in allFiles)
-            {
-                if (file.Substring(file.Length - 3).ToLower() == "zip")
-                {
-                    zipExist = true;
-                    break;
-                }
-            }
-            if (zipExist) counter = extractPics(getZipFiles(RootDirectory), RootDirectory, counter);
-            else Console.WriteLine("No archives Found in current directory");
-
-            Console.ReadKey();
         }
     }
 }

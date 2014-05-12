@@ -55,7 +55,7 @@
             this.results.Multiline = true;
             this.results.Name = "results";
             this.results.ReadOnly = true;
-            this.results.ScrollBars = System.Windows.Forms.ScrollBars.Horizontal;
+            this.results.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.results.Size = new System.Drawing.Size(570, 292);
             this.results.TabIndex = 1;
             this.results.Text = "test\r\ntest2";
