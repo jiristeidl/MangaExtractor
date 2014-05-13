@@ -1,21 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Collections.Generic;
-using System.Data.Linq;
 
 namespace NewExtractorWithUI
 {
-    class MangaExtractor
+    internal class MangaExtractor
     {
-        string rootDirectory;
-        string extractedFolderName;
-        string[] imgExtensions;
-        string[] extensions = {"img","png"};
-        string[] otherArchives = { "rar","7z" };        
-        List<File> filesToExtract;
-        List<File> imagesToExtract;
-        int counter;
+        private string rootDirectory;
+        private string extractedFolderName;
+        private string[] imgExtensions;
+        private string[] extensions = { "img", "png" };
+        private string[] otherArchives = { "rar", "7z" };
+        private List<File> filesToExtract;
+        private List<File> imagesToExtract;
+        private int counter;
 
         public string[] ZipFiles
         {
@@ -33,6 +32,7 @@ namespace NewExtractorWithUI
                 }
             }
         }
+
         public string RootDirectory
         {
             get
@@ -45,11 +45,12 @@ namespace NewExtractorWithUI
                 rootDirectory = value;
             }
         }
+
         public string ExtractedFolderName
         {
             get
             {
-                if (string.IsNullOrEmpty(extractedFolderName)) return @"\extracted";
+                if (string.IsNullOrEmpty(extractedFolderName)) return @"\extracted\";
                 else return extractedFolderName;
             }
             set
@@ -57,6 +58,7 @@ namespace NewExtractorWithUI
                 extractedFolderName = value;
             }
         }
+
         public string[] ImgExtensions
         {
             get
@@ -69,6 +71,7 @@ namespace NewExtractorWithUI
                 imgExtensions = value;
             }
         }
+
         public string[] Images
         {
             get
@@ -91,8 +94,9 @@ namespace NewExtractorWithUI
             counter = 1;
             filesToExtract = new List<File>();
         }
+
         public void Extract()
-        {            
+        {
             filesToExtract = getZipFiles();
             imagesToExtract = extractPictures(filesToExtract);
         }
@@ -101,17 +105,19 @@ namespace NewExtractorWithUI
         {
             //throw new NotImplementedException();
             List<File> allPictures = new List<File>();
+            List<Image> currentPictures;
             string[] archives = getValuesFromList(filesToExtract);
-            File result;
+            Image result;
 
             foreach (string archive in archives)
             {
+                currentPictures = new List<Image>();
                 using (ZipArchive oneArchive = ZipFile.OpenRead(archive))
                 {
                     string[] zipFiles = Directory.GetFiles(RootDirectory, "*.zip", SearchOption.AllDirectories);
                     foreach (ZipArchiveEntry entry in oneArchive.Entries)
                     {
-                        result = new File();
+                        result = new Image();
                         int length = entry.FullName.Length;
                         string numberString = "";
                         for (int i = length - 1; i != 0; i--)
@@ -125,25 +131,41 @@ namespace NewExtractorWithUI
                         if (string.IsNullOrEmpty(numberString))
                         {
                             numberString = "-1";
-                            break;
                         }
-                        result.Name = entry.FullName;
+                        result.Name = entry;
                         result.Priority = int.Parse(numberString);
-                        allPictures.Add(result);
-                    }                    
-                    //foreach (ZipArchiveEntry entry in oneArchive.Entries)
-                    //{
-                    //    if (isPicture(entry.FullName))
-                    //    {
-                    //        Console.WriteLine(RootDirectory + ExtractedFolderName + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
-                    //        entry.ExtractToFile(RootDirectory + ExtractedFolderName + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
-                    //        counter++;
-                    //    }
-                    //}
-                }                
+                        currentPictures.Add(result);
+                    }
+                    currentPictures.Sort((x, y) => x.Priority.CompareTo(y.Priority));
+                    allPictures.AddRange(getFileListFromImageList(currentPictures));
+                    foreach (Image entry in currentPictures)
+                    {
+                        if (isPicture(entry.Name.FullName))
+                        {
+                            Directory.CreateDirectory(RootDirectory + ExtractedFolderName);
+                            entry.Name.ExtractToFile(RootDirectory + ExtractedFolderName + counter.ToString("D6") + entry.Name.FullName.Substring(entry.Name.FullName.Length - 4));
+                            counter++;
+                        }
+                    }
+                }
             }
             return allPictures;
         }
+
+        private List<File> getFileListFromImageList(List<Image> currentPictures)
+        {
+            List<File> results = new List<File>();
+            File result;
+            foreach (Image entry in currentPictures)
+            {
+                result = new File();
+                result.Name = entry.Name.FullName;
+                result.Priority = entry.Priority;
+                results.Add(result);
+            }
+            return results;
+        }
+
         private string[] getValuesFromList(List<File> filesToExtract)
         {
             string[] results = new string[filesToExtract.Count];
@@ -154,12 +176,13 @@ namespace NewExtractorWithUI
             }
             return results;
         }
+
         private List<File> getZipFiles()
         {
             List<File> allZipFiles = new List<File>();
             string[] zipFiles = Directory.GetFiles(RootDirectory, "*.zip", SearchOption.AllDirectories);
             File result;
-            foreach(string entry in zipFiles)
+            foreach (string entry in zipFiles)
             {
                 result = new File();
                 int length = entry.Length;
@@ -170,7 +193,7 @@ namespace NewExtractorWithUI
                     {
                         numberString = entry[i] + numberString;
                     }
-                    if ((!string.IsNullOrEmpty(numberString) && !char.IsDigit(entry[i])) || entry[i]=='\\') break;
+                    if ((!string.IsNullOrEmpty(numberString) && !char.IsDigit(entry[i])) || entry[i] == '\\') break;
                 }
                 if (string.IsNullOrEmpty(numberString)) numberString = "-1";
                 result.Priority = int.Parse(numberString);
@@ -179,27 +202,7 @@ namespace NewExtractorWithUI
             }
             return allZipFiles;
         }
-        //private int oldextractPics(string[] p, string topDirectory, int counter)
-        //{
-        //    Directory.CreateDirectory(topDirectory + ExtractedFolderName);
-        //    string directoryToExtractTo = topDirectory + ExtractedFolderName;
-        //    foreach (string archive in p)
-        //    {
-        //        using (ZipArchive oneArchive = ZipFile.OpenRead(archive))
-        //        {
-        //            foreach (ZipArchiveEntry entry in oneArchive.Entries)
-        //            {
-        //                if (isPicture(entry.FullName))
-        //                {
-        //                    Console.WriteLine(topDirectory + ExtractedFolderName + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
-        //                    entry.ExtractToFile(topDirectory + ExtractedFolderName + counter.ToString("D6") + entry.FullName.Substring(entry.FullName.Length - 4));
-        //                    counter++;
-        //                }
-        //            }
-        //        }
-        //    }
-        //    return counter;
-        //}
+
         private bool isPicture(string p)
         {
             bool result = false;
