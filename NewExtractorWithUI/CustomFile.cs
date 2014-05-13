@@ -1,6 +1,6 @@
 ﻿namespace NewExtractorWithUI
 {
-    internal class File
+    internal class CustomFile
     {
         public string Name { get; set; }
 

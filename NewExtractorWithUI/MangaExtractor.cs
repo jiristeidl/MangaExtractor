@@ -12,8 +12,8 @@ namespace NewExtractorWithUI
         private string[] imgExtensions;
         private string[] extensions = { "img", "png" };
         private string[] otherArchives = { "rar", "7z" };
-        private List<File> filesToExtract;
-        private List<File> imagesToExtract;
+        private List<CustomFile> filesToExtract;
+        private List<CustomFile> imagesToExtract;
         private int counter;
 
         public string[] ZipFiles
@@ -92,7 +92,7 @@ namespace NewExtractorWithUI
         public MangaExtractor()
         {
             counter = 1;
-            filesToExtract = new List<File>();
+            filesToExtract = new List<CustomFile>();
         }
 
         public void Extract()
@@ -101,10 +101,10 @@ namespace NewExtractorWithUI
             imagesToExtract = extractPictures(filesToExtract);
         }
 
-        private List<File> extractPictures(List<File> filesToExtract)
+        private List<CustomFile> extractPictures(List<CustomFile> filesToExtract)
         {
             //throw new NotImplementedException();
-            List<File> allPictures = new List<File>();
+            List<CustomFile> allPictures = new List<CustomFile>();
             List<Image> currentPictures;
             string[] archives = getValuesFromList(filesToExtract);
             Image result;
@@ -152,13 +152,13 @@ namespace NewExtractorWithUI
             return allPictures;
         }
 
-        private List<File> getFileListFromImageList(List<Image> currentPictures)
+        private List<CustomFile> getFileListFromImageList(List<Image> currentPictures)
         {
-            List<File> results = new List<File>();
-            File result;
+            List<CustomFile> results = new List<CustomFile>();
+            CustomFile result;
             foreach (Image entry in currentPictures)
             {
-                result = new File();
+                result = new CustomFile();
                 result.Name = entry.Name.FullName;
                 result.Priority = entry.Priority;
                 results.Add(result);
@@ -166,7 +166,7 @@ namespace NewExtractorWithUI
             return results;
         }
 
-        private string[] getValuesFromList(List<File> filesToExtract)
+        private string[] getValuesFromList(List<CustomFile> filesToExtract)
         {
             string[] results = new string[filesToExtract.Count];
             filesToExtract.Sort((x, y) => x.Priority.CompareTo(y.Priority));
@@ -177,14 +177,14 @@ namespace NewExtractorWithUI
             return results;
         }
 
-        private List<File> getZipFiles()
+        private List<CustomFile> getZipFiles()
         {
-            List<File> allZipFiles = new List<File>();
+            List<CustomFile> allZipFiles = new List<CustomFile>();
             string[] zipFiles = Directory.GetFiles(RootDirectory, "*.zip", SearchOption.AllDirectories);
-            File result;
+            CustomFile result;
             foreach (string entry in zipFiles)
             {
-                result = new File();
+                result = new CustomFile();
                 int length = entry.Length;
                 string numberString = "";
                 for (int i = length - 1; i != 0; i--)

@@ -2,7 +2,7 @@
 
 namespace NewExtractorWithUI
 {
-    internal class Image : File
+    internal class Image : CustomFile
     {
         new public ZipArchiveEntry Name { get; set; }
     }
